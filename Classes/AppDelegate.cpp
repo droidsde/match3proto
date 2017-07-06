@@ -3,10 +3,10 @@
 
 USING_NS_CC;
 
-static cocos2d::Size designResolutionSize = cocos2d::Size(600, 800);
+static cocos2d::Size designResolutionSize = cocos2d::Size(1200, 800);
 static cocos2d::Size smallResolutionSize = cocos2d::Size(480, 320);
-static cocos2d::Size mediumResolutionSize = cocos2d::Size(1024, 768);
-static cocos2d::Size largeResolutionSize = cocos2d::Size(2048, 1536);
+static cocos2d::Size mediumResolutionSize = cocos2d::Size(960, 640);
+static cocos2d::Size largeResolutionSize = cocos2d::Size(1280, 720);
 
 AppDelegate::AppDelegate()
 {
@@ -54,6 +54,23 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
     // Set the design resolution
     glview->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, ResolutionPolicy::NO_BORDER);
+	auto frameSize = glview->getFrameSize();
+
+	// if the frame's height is larger than the height of medium size.
+	if (frameSize.height > mediumResolutionSize.height)
+	{
+		director->setContentScaleFactor(largeResolutionSize.height / designResolutionSize.height);
+	}
+	// if the frame's height is larger than the height of small size.
+	else if (frameSize.height > smallResolutionSize.height)
+	{
+		director->setContentScaleFactor(mediumResolutionSize.height / designResolutionSize.height);
+	}
+	// if the frame's height is smaller than the height of medium size.
+	else
+	{
+		director->setContentScaleFactor(smallResolutionSize.height / designResolutionSize.height);
+	}
 
     register_all_packages();
 
