@@ -22,7 +22,7 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\Candy.cpp" />
-    <ClCompile Include="..\Board.cpp" />
+    <ClCompile Include="..\Classes\Chain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -37,6 +37,7 @@
     <ClInclude Include="..\defined.h" />
     <ClInclude Include="..\Candy.h" />
     <ClInclude Include="..\GameManager.h" />
+    <ClInclude Include="..\Classes\Chain.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="game.rc">

@@ -1,7 +1,6 @@
-#include "HelloWorldScene.h"
+﻿#include "HelloWorldScene.h"
 #include "SimpleAudioEngine.h"
 #include "defined.h"
-#include "GameManager.h"
 #include "Candy.h"
 
 
@@ -29,7 +28,7 @@ bool HelloWorld::IsSelected(Candy *candy)
 {
 	if (candy->getBoundingBox().containsPoint(m_pointClicked))
 	{
-		CCLOG("Candy have touched !!");
+		//CCLOG("Candy have touched !!");
 		return true;
 	}
 	return false;
@@ -85,7 +84,7 @@ bool HelloWorld::IsSwappable(const Point2D &indexOf1st, const Point2D &indexOf2n
 }
 
 
-void HelloWorld::Swap(Candy *& candy1, Candy *& candy2)
+void HelloWorld::Swap(Candy* candy1, Candy* candy2)
 {
 	/// swap position
 	auto pos1st = candy1->getPosition();
@@ -97,17 +96,20 @@ void HelloWorld::Swap(Candy *& candy1, Candy *& candy2)
 	actionMove = MoveTo::create(0.3f, pos1st);
 	candy2->runAction(actionMove);
 
-	m_candySelect = m_boardRows[][];
+	auto temp = candy1;
+	candy1 = candy2;
+	candy2 = temp;
 
 	/// swap pointer in board
-	m_boardRows[m_index1st.m_x][m_index1st.m_y] = candy2;
-	m_boardRows[m_index2nd.m_x][m_index2nd.m_y] = candy1;
+	m_boardRows[m_index1st.m_x][m_index1st.m_y] = candy1;
+	m_boardRows[m_index2nd.m_x][m_index2nd.m_y] = candy2;
 
 }
 
 //////////////////////////////////////////////////////////////////////////
 /// check 3 candy after swap.
-bool HelloWorld::IsMatch3()
+/// return number of match 3 in board.
+int HelloWorld::GetCountIsMatch3()
 {
 	int countVertical = 1;
 	int countHorizon = 1;
@@ -118,28 +120,42 @@ bool HelloWorld::IsMatch3()
 	/// phai check ca 2 candy, moi candy
 	/// check for vertical-up
 	int y = 1;
-	while (m_boardRows[p1.m_x][p1.m_y + y]->m_type == type)
+	//while (m_boardRows[p1.m_x][p1.m_y + y]->m_type == type)
 	{
 		countVertical += 1;
 		y += 1;
 		if (y == BOARD_HEIGHT)
 		{
-			break;
+			//break;
 		}
 	}
 	/// check for vertical-down
 	y = 1;
-	while (m_boardRows[p2.m_x][p2.m_y - y]->m_type == type)
+	//while (m_boardRows[p2.m_x][p2.m_y - y]->m_type == type)
 	{
 		countVertical += 1;
 		y += 1;
 		if (y < 0)
 		{
-			break;
+			//break;
 		}
 	}
 
 	return false;
+}
+
+
+void HelloWorld::printAllPos()
+{
+	for (int i = 0; i < BOARD_HEIGHT; i++)
+	{
+		for (int j = 0; j < BOARD_WIDTH; j++)
+		{
+			CCLOG("i = %d, j = %d", i, j);
+			CCLOG("%d - %d ", m_boardRows[i][j]->m_position.m_x, m_boardRows[i][j]->m_position.m_y);
+			CCLOG("------------");
+		}
+	}
 }
 
 void HelloWorld::InitBoard()
@@ -147,20 +163,20 @@ void HelloWorld::InitBoard()
 	auto seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::srand(seed);
 	int random = 0;
-
+	
 	CCLOG("m_offsetX = %d, m_offsetY = %d", m_offsetX, m_offsetY);
-	// init container
+	/// init container
 	for (int i = 0; i < BOARD_HEIGHT; i++)
 	{
 		Candy** row = new Candy*[BOARD_WIDTH];
 		m_boardRows.push_back(row);
 	}
-	for (int i = 0; i < BOARD_HEIGHT; i++) // 8
+
+	for (int i = 0; i < BOARD_HEIGHT; i++) // 5
 	{
-		for (int j = 0; j < BOARD_WIDTH; j++) // 5
+		for (int j = 0; j < BOARD_WIDTH; j++) // 8
 		{
 			//CCLOG("i = %d, j = %d", i, j);
-
 			random = RAND_MIN_RANGE + std::rand() % (RAND_MAX_RANGE - RAND_MIN_RANGE + 1);
 			if (random <= 4)	//bean blue
 			{
@@ -239,9 +255,187 @@ void HelloWorld::InitBoard()
 				m_boardRows[i][j]->m_type = TypeOfCandy::TYPE_CANE_HUMBUG;
 				this->addChild(m_boardRows[i][j], Z_INDEX_CANDY);
 			}
+			m_boardRows[i][j]->m_position = Point2D(i, j);
 		}
 	}
 
+}
+
+
+bool HelloWorld::CheckMatchThree()
+{
+	CheckMatchHorizontal(m_firstSelected);
+	CheckMatchVertical(m_firstSelected);
+
+	CheckMatchHorizontal(m_secondSelected);
+	CheckMatchVertical(m_secondSelected);
+
+	auto numOfChain = m_allChains.size();
+	CCLOG("num of chain: %d", numOfChain);
+	if (numOfChain >= 1)
+	{
+		return true;
+	}
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// Hàm ktra trong 1 cột thứ col, có match-3 với candy ko?
+/// hàm trả về vị trí đầu tiên + vị trí cuối cùng của chuỗi match với candy
+/// hoặc nếu ko tìm đc chuỗi thì vị trí cuối cùng của chuỗi là 0.
+int		HelloWorld::CheckMatchVertical(Candy* candy)
+{
+	if (candy == nullptr)
+	{
+		CCLOG("NULL Ptr");
+		return -1;
+	}
+
+	/// ktra nếu ptu đang xét đã thuộc 1 chain nào đó rồi thì bỏ qua.
+	Point2D		posOfCandy = candy->m_position;
+	for (auto it = m_allChains.begin(); it != m_allChains.end(); it++)
+	{
+		if ((*it)->CheckIfInChain(posOfCandy))
+		{
+			return -1;
+		}
+	}
+
+	TypeOfCandy typeOfCandy;
+	Chain*	chain = new Chain;
+	/// khởi tạo chuỗi ban đầu bằng ptu đang xét.
+	chain->m_first = posOfCandy;
+	chain->m_last = posOfCandy;
+	chain->m_isVertical = true;
+	chain->m_length = 1;
+	chain->m_chainOfType = candy->m_type;
+
+	const int column = posOfCandy.m_y;
+	const int row = posOfCandy.m_x;
+	int i = row + 1;
+	/// duyệt từ ptu == candy lên phía trên.
+	for (; i < BOARD_HEIGHT; i++)
+	{
+		typeOfCandy = m_boardRows[i][column]->m_type;
+		if (chain->CheckIfSameTypeChain(typeOfCandy))
+		{
+			chain->AddOneNodeToChain(Point2D(i, column));
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	/// duyệt từ ptu == candy xuống phía dưới.
+	i = row - 1;
+	for (; i >= 0; i--)
+	{
+		typeOfCandy = m_boardRows[i][column]->m_type;
+		if (chain->CheckIfSameTypeChain(typeOfCandy))
+		{
+			chain->AddOneNodeToChain(Point2D(i, column));
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	/// ktra nếu length của chain >=3 thì add vào m_allChains.
+	if (chain->m_length >= 3)
+	{
+		m_allChains.push_back(chain);
+		CCLOG("posCandy: %d - %d", posOfCandy.m_x, posOfCandy.m_y);
+		CCLOG("1st: %d - %d | 2nd: %d - %d", chain->m_first.m_x, chain->m_first.m_y, chain->m_last.m_x, chain->m_last.m_y);
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+/// Hàm ktra trong 1 hàng thứ row, có match-3 với candy ko ?
+/// hàm trả về vị trí đầu tiên + vị trí cuối cùng của chuỗi match với candy1st
+/// hoặc nếu ko có chuỗi nào thì vị trí cuối cùng là 0.
+int HelloWorld::CheckMatchHorizontal(Candy* candy)
+{
+	if (candy == nullptr)
+	{
+		CCLOG("NULL Ptr");
+		return -1;
+	}
+
+	/// ktra nếu ptu đang xét đã thuộc 1 chain nào đó rồi thì bỏ qua.
+	Point2D		posOfCandy = candy->m_position;
+	for (auto it = m_allChains.begin(); it != m_allChains.end(); it++)
+	{
+		if ((*it)->CheckIfInChain(posOfCandy))
+		{
+			return -1;
+		}
+	}
+	TypeOfCandy typeOfCandy;
+	Chain*	chain = new Chain;
+	/// khởi tạo chuỗi ban đầu bằng ptu đang xét.
+	chain->m_first = posOfCandy;
+	chain->m_last = posOfCandy;
+	chain->m_isVertical = false;
+	chain->m_length = 1;
+	chain->m_chainOfType = candy->m_type;
+
+	const int column = posOfCandy.m_y;
+	const int row = posOfCandy.m_x;
+	int i = column + 1;
+	/// duyệt từ ptu == candy sang bên phải
+	for (; i < BOARD_WIDTH; i++)
+	{
+		typeOfCandy = m_boardRows[row][i]->m_type;
+		if (chain->CheckIfSameTypeChain(typeOfCandy))
+		{
+			chain->AddOneNodeToChain(Point2D(row, i));
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	/// duyệt từ ptu == candy sang bên trái
+	i = column - 1;
+	for (; i >= 0; i--)
+	{
+		typeOfCandy = m_boardRows[row][i]->m_type;
+		if (chain->CheckIfSameTypeChain(typeOfCandy))
+		{
+			chain->AddOneNodeToChain(Point2D(row, i));
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	/// ktra nếu length của chain >=3 thì add vào m_allChains.
+	if (chain->m_length >= 3)
+	{
+		m_allChains.push_back(chain);
+		CCLOG("posCandy: %d - %d", posOfCandy.m_x, posOfCandy.m_y);
+		CCLOG("1st: %d - %d | 2nd: %d - %d", chain->m_first.m_x, chain->m_first.m_y, chain->m_last.m_x, chain->m_last.m_y);
+	}
+	return 0;
+}
+
+
+void HelloWorld::CheckMatch3All()
+{
+	for (int i = 0; i < BOARD_HEIGHT; i++)
+	{
+		for (int j = 0; j < BOARD_WIDTH; j++)
+		{
+			CheckMatchHorizontal(m_boardRows[i][j]);
+			CheckMatchVertical(m_boardRows[i][j]);
+		}
+	}
 }
 
 Scene* HelloWorld::createScene()
@@ -306,6 +500,10 @@ bool HelloWorld::init()
 	m_botLeftY = visibleSize.height / 5;
 	/// init board
 	InitBoard();
+	m_firstSelected = nullptr;
+	m_secondSelected = nullptr;
+
+
 	auto _listener = EventListenerTouchOneByOne::create();
 	_listener->setSwallowTouches(true);
 	_listener->onTouchBegan = CC_CALLBACK_2(HelloWorld::onTouchBegan, this);
@@ -313,8 +511,11 @@ bool HelloWorld::init()
 	_listener->onTouchMoved = CC_CALLBACK_2(HelloWorld::onTouchMoved, this);
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(_listener, this);
 
+	//printAllPos();
+	CheckMatch3All();
+	CCLOG("number of chain: %d", m_allChains.size());
 	// check all sprites.
-	schedule(schedule_selector(HelloWorld::updateGame));
+	//schedule(schedule_selector(HelloWorld::updateGame));
 	
 
     return true;
@@ -329,22 +530,34 @@ void HelloWorld::updateGame(float dt)
 		if (IsSwappable(m_index1st, m_index2nd))
 		{
 			CCLOG("Swapped !");
+			/*CCLOG("1st TYPE: %d ---", m_boardRows[m_index1st.m_x][m_index1st.m_y]->m_type);
+			CCLOG("2nd TYPE: %d ---", m_boardRows[m_index2nd.m_x][m_index2nd.m_y]->m_type);*/
 			Swap(m_firstSelected, m_secondSelected);
+			/*CCLOG("1st TYPE: %d ---", m_boardRows[m_index1st.m_x][m_index1st.m_y]->m_type);
+			CCLOG("2nd TYPE: %d ---", m_boardRows[m_index2nd.m_x][m_index2nd.m_y]->m_type);*/
+
+			//if (CheckMatchThree())
+			{
+				//CCLOG("Match 3 !");
+			}
+			//else
+			{
+				//CCLOG("Not Match 3 !!");
+			}
 		}
 		else
 		{
 			CCLOG("Cannot Swapped !");
-
-
 		}
 		/// check match 3 sau khi swap
-		if (IsMatch3())
+		//if (CheckMatchThree())
 		{
-			CCLOG("Match 3 !");
+			//CCLOG("Match 3 !");
 		}
-		else
+		//else
 		{
 			/// swap nguoc tro lai
+			//CCLOG("Ko Match 3 !");
 
 		}
 		/// update score
@@ -355,6 +568,11 @@ void HelloWorld::updateGame(float dt)
 		m_index2nd = Point2D(0, 0);
 		m_secondSelected = nullptr;
 	}
+
+	CheckMatch3All();
+	CCLOG("num of chain: %d", m_allChains.size());
+	/// remove all chains.
+	m_allChains.clear();
 }
 
 void HelloWorld::menuCloseCallback(Ref* pSender)
@@ -389,5 +607,5 @@ void HelloWorld::onTouchEnded(cocos2d::Touch*, cocos2d::Event*)
 
 void HelloWorld::onTouchMoved(cocos2d::Touch*, cocos2d::Event*)
 {
-	CCLOG("Touch Moved !");
+	//CCLOG("Touch Moved !");
 }

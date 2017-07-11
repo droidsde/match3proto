@@ -144,13 +144,14 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Board.cpp" />
     <ClCompile Include="..\Candy.cpp" />
     <ClCompile Include="..\Classes\AppDelegate.cpp" />
+    <ClCompile Include="..\Classes\Chain.cpp" />
     <ClCompile Include="..\Classes\HelloWorldScene.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Classes\Chain.h" />
     <ClInclude Include="..\GameManager.h" />
     <ClInclude Include="..\Candy.h" />
     <ClInclude Include="..\Classes\AppDelegate.h" />

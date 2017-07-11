@@ -69,3 +69,4 @@ typedef struct Point2D
 		m_y = p.m_y;
 	}
 }Point2D;
+

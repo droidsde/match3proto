@@ -10,13 +10,11 @@ class Candy : public cocos2d::Sprite {
 
 public:
 	TypeOfCandy		m_type;
-
+	Point2D			m_position;
 	static Candy* createCandyWithFileName(char *fileName);
 
-	Candy() 
-	{
-		m_type = TypeOfCandy::TYPE_UNKNOW_CANDY;
-	};
+	Candy();
+	~Candy();
 
 };
 

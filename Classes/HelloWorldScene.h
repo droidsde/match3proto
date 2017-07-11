@@ -1,11 +1,15 @@
-#ifndef __HELLOWORLD_SCENE_H__
+﻿#ifndef __HELLOWORLD_SCENE_H__
 #define __HELLOWORLD_SCENE_H__
 
 #include "cocos2d.h"
 #include "Candy.h"
 #include "defined.h"
+#include "Chain.h"
+
 
 class Candy;
+class Chain;
+
 
 class HelloWorld : public cocos2d::Layer
 {
@@ -25,18 +29,28 @@ private:
 	Point2D		m_index1st;
 	Point2D		m_index2nd;
 
+	/// to contain pointer of sprites.
 	std::vector<Candy**>	m_boardRows;
 
+	/// mảng lưu các chuỗi tìm được.
+	std::vector<Chain*>			m_allChains;
 
 	void		InitBoard();
+	bool		CheckMatchThree();
+	int			CheckMatchVertical(Candy* candy);
+	int			CheckMatchHorizontal(Candy* candy);
+	void		CheckMatch3All();
 	void		ReFilledBoard();
 	Candy*		GetCandyIsChoosed();
 	bool		IsSelected(Candy *candy);
 	void		CheckAllSprite();
 	bool		IsSwappable(const Point2D &indexOf1st, const Point2D &indexOf2nd);
-	void		Swap(Candy *& candy1, Candy *& candy2);
+	void		Swap(Candy* candy1, Candy* candy2);
 	void		RemoveMatch3();
-	bool		IsMatch3();
+	int			GetCountIsMatch3();
+
+	/// tesst
+	void printAllPos();
 public:
     static cocos2d::Scene* createScene();
 
