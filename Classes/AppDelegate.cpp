@@ -3,7 +3,7 @@
 
 USING_NS_CC;
 
-static cocos2d::Size designResolutionSize = cocos2d::Size(1200, 800);
+static cocos2d::Size designResolutionSize = cocos2d::Size(800, 480);
 static cocos2d::Size smallResolutionSize = cocos2d::Size(480, 320);
 static cocos2d::Size mediumResolutionSize = cocos2d::Size(960, 640);
 static cocos2d::Size largeResolutionSize = cocos2d::Size(1280, 720);
@@ -57,19 +57,21 @@ bool AppDelegate::applicationDidFinishLaunching() {
 	auto frameSize = glview->getFrameSize();
 
 	// if the frame's height is larger than the height of medium size.
-	if (frameSize.height > mediumResolutionSize.height)
+	if (frameSize.width > mediumResolutionSize.width)
 	{
-		director->setContentScaleFactor(largeResolutionSize.height / designResolutionSize.height);
+		director->setContentScaleFactor(MIN(largeResolutionSize.width / designResolutionSize.width, largeResolutionSize.height / designResolutionSize.height));
 	}
 	// if the frame's height is larger than the height of small size.
-	else if (frameSize.height > smallResolutionSize.height)
+	else if (frameSize.width > smallResolutionSize.width)
 	{
-		director->setContentScaleFactor(mediumResolutionSize.height / designResolutionSize.height);
+		//director->setContentScaleFactor(mediumResolutionSize.width / designResolutionSize.width);
+		director->setContentScaleFactor(MIN(mediumResolutionSize.width / designResolutionSize.width, mediumResolutionSize.height / designResolutionSize.height));
 	}
 	// if the frame's height is smaller than the height of medium size.
 	else
 	{
-		director->setContentScaleFactor(smallResolutionSize.height / designResolutionSize.height);
+		//director->setContentScaleFactor(smallResolutionSize.width / designResolutionSize.width);
+		director->setContentScaleFactor(MIN(smallResolutionSize.width / designResolutionSize.width, smallResolutionSize.height / designResolutionSize.height));
 	}
 
     register_all_packages();

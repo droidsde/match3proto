@@ -1,16 +1,17 @@
 ﻿#include "Chain.h"
 
+#include "Chain.h"
 
 Chain::Chain()
 {
-	m_first = Point2D(0, 0);
-	m_last = Point2D(0, 0);
+	m_first = Position(0, 0);
+	m_last = Position(0, 0);
 	m_length = 0;
 	m_isVertical = true;
-	m_chainOfType = TypeOfCandy::TYPE_UNKNOW_CANDY;
+	m_typeOfChain = 0;
 }
 
-Chain::Chain(Point2D first, Point2D last, int length, bool direction /*= true*/)
+Chain::Chain(Position first, Position last, int length, bool direction /*= true*/)
 {
 	m_first = first;
 	m_last = last;
@@ -20,17 +21,16 @@ Chain::Chain(Point2D first, Point2D last, int length, bool direction /*= true*/)
 
 Chain::~Chain()
 {
-
 }
 
-void Chain::AddOneNodeToChain(Point2D pos)
+void Chain::AddOneNodeToChain(Position pos)
 {
 	m_length += 1;
 	/// thêm vào cuối nếu chỉ số row(col) lớn hơn phần tử cuối của chuỗi,
 	/// và cập nhật lại vị trí phần tử cuối.
 	if (m_isVertical)
 	{
-		if (pos.m_y > m_last.m_y)
+		if (pos.m_col > m_last.m_col)
 		{
 			m_last = pos;
 		}
@@ -43,7 +43,7 @@ void Chain::AddOneNodeToChain(Point2D pos)
 	/// và cập nhật lại vị trí phần tử đầu.
 	else
 	{
-		if (pos.m_x > m_last.m_x)
+		if (pos.m_row > m_last.m_row)
 		{
 			m_last = pos;
 		}
@@ -54,58 +54,79 @@ void Chain::AddOneNodeToChain(Point2D pos)
 	}
 }
 
-bool Chain::CheckIfSameTypeChain(TypeOfCandy type)
-{
-	if (m_chainOfType == type)
-	{
-		//CCLOG("== type");
-		return true;
-	}
-	//CCLOG("!= type");
-	return false;
-}
-
-bool Chain::CheckIfInChain(Point2D p)
+void Chain::FixChain()
 {
 	if (m_isVertical)
 	{
-		/// so sánh row
-		if (m_first.m_x < m_last.m_x)
+		if (m_first.m_row > m_last.m_row)
 		{
-			if ((m_first.m_x <= p.m_x) && (p.m_x <= m_last.m_x))
-			{
-				return true;
-			}
-			return false;
-		}
-		else
-		{
-			if ((m_first.m_x >= p.m_x) && (p.m_x >= m_last.m_x))
-			{
-				return true;
-			}
-			return false;
+			Position temp = m_first;
+			m_first = m_last;
+			m_last = temp;
 		}
 	}
 	else
 	{
-		/// so sánh column
-		if (m_first.m_y < m_last.m_y)
+		if (m_first.m_col > m_last.m_col)
 		{
-			if ((m_first.m_y <= p.m_y) && (p.m_y <= m_last.m_y))
-			{
-				return true;
-			}
-			return false;
-		}
-		else
-		{
-			if ((m_first.m_y >= p.m_y) && (p.m_y >= m_last.m_y))
-			{
-				return true;
-			}
-			return false;
+			Position temp = m_first;
+			m_first = m_last;
+			m_last = temp;
 		}
 	}
 }
 
+bool Chain::CheckIfSameTypeChain(int typeOfCandy)
+{
+	if (m_typeOfChain == typeOfCandy)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool Chain::CheckIfInChain(Position p)
+{
+	FixChain();
+	if (m_isVertical)
+	{
+		/// so sánh row
+		if ((m_first.m_row <= p.m_row) && (p.m_row <= m_last.m_row) && (m_first.m_col == p.m_col))
+		{
+			return true;
+		}
+		return false;
+	}
+	else
+	{
+		/// so sánh column
+		if ((m_first.m_col <= p.m_col) && (p.m_col <= m_last.m_col) && (m_first.m_row == p.m_row))
+		{
+			return true;
+		}
+		return false;
+	}
+}
+
+void Chain::PrintChain()
+{
+	FixChain();
+	if (m_isVertical)
+	{
+		printf("column = %d\n", m_first.m_col);
+		for (int row = m_first.m_row; row <= m_last.m_row; row++)
+		{
+			printf(" %2d ", row);
+		}
+		printf("\n");
+	}
+	else
+	{
+		printf("row = %d\n", m_first.m_row);
+		for (int col = m_first.m_col; col <= m_last.m_col; col++)
+		{
+			printf(" %2d ", col);
+		}
+		printf("\n");
+	}
+}

@@ -13,12 +13,26 @@ Candy* Candy::createCandyWithFileName(char *fileName)
 	return nullptr;
 }
 
-Candy::Candy()
+bool		Candy::IsSelected(const Point& p)
 {
-	m_type = TypeOfCandy::TYPE_UNKNOW_CANDY;
+	if (this->getBoundingBox().containsPoint(p))
+	{
+		//CCLOG("Candy have touched !!");
+		return true;
+	}
+	return false;
 }
 
-Candy::~Candy()
+void		Candy::DisAppear()
 {
+	auto action = ScaleBy::create(1.0f, 0.1f);
+	auto seq = Sequence::create(action, nullptr);
+	this->runAction(seq);
+}
 
+void		Candy::Appear()
+{
+	auto action = FadeIn::create(1.0f);
+	this->runAction(action);
+	this->stopAction(action);
 }

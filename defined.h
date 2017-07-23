@@ -1,72 +1,56 @@
 #pragma once
 
-/// type of candy
-enum TypeOfCandy
+#define		Z_INDEX_CANDY		50
+#define		Z_INDEX_BG			20
+
+#define		RAND_MIN_RANGE			1
+#define		RAND_MAX_RANGE			20
+
+#define		BOARD_HEIGHT		5
+#define		BOARD_WIDTH			7
+
+#define		TYPE_ONE	1
+#define		TYPE_TWO	2
+#define		TYPE_THREE	3
+#define		TYPE_FOUR	4
+#define		TYPE_FIVE	5
+
+#define		TOP_LEFT_X	100
+#define		TOP_LEFT_Y	100
+
+typedef struct Position
 {
-		TYPE_UNKNOW_CANDY = 0,
-		TYPE_BEAN_BLUE	=	1,
-		TYPE_BEAN_GREEN,
-		TYPE_BEAN_ORANGE,
-		TYPE_BEAN_PINK,
-		TYPE_BEAN_PURPLE,
-		TYPE_BEAN_RED,
-		TYPE_BEAN_WHITE,
-		TYPE_BEAN_YELLOW,
+	int		m_row;
+	int		m_col;
 
-		TYPE_CANE_CANE,
-		TYPE_CANE_CORN,
-		TYPE_CANE_HUMBUG,
-};
-
-
-// score: 
-#define  SCORE_BEAN_BLUE			11
-#define  SCORE_BEAN_GREEN			12
-#define  SCORE_BEAN_ORANGE		13
-#define  SCORE_BEAN_PINK			14
-#define  SCORE_BEAN_PURPLE		15
-#define  SCORE_BEAN_RED			16
-#define  SCORE_BEAN_WHITE			17
-#define  SCORE_BEAN_YELLOW		18
-
-// CANDY = 2
-#define  SCORE_CANDY_CANE				21
-#define  SCORE_CANDY_CORN				22
-#define  SCORE_CANDY_HUMBUG			23
-
-#define  Z_INDEX_BG				20
-#define  Z_INDEX_CANDY			50
-
-// the chance for random to blue, green, orange
-#define  CHANCE_BEAN_BLUE		0.8
-#define  CHANCE_BEAN_GREEN		CHANCE_BEAN_BLUE
-#define  CHANCE_BEAN_ORANGE		CHANCE_BEAN_BLUE
-
-#define	 BOARD_HEIGHT		5
-#define	 BOARD_WIDTH		8
-
-#define	 RAND_MIN_RANGE			1
-#define  RAND_MAX_RANGE			39
-
-#define	 EXIST_MATCH_3			1
-
-#define	 DEBUG_MODE			0
-
-typedef struct Point2D
-{
-	int		m_x;
-	int		m_y;
-
-	Point2D(int x = 0, int y = 0)
+	Position(int row = 0, int col = 0)
 	{
-		m_x = x;
-		m_y = y;
+		m_row = row;
+		m_col = col;
 	}
 
-	void operator=(const Point2D& p)
+	void operator=(const Position& p)
 	{
-		m_x = p.m_x;
-		m_y = p.m_y;
+		m_row = p.m_row;
+		m_col = p.m_col;
 	}
-}Point2D;
 
+	bool operator==(const Position& p)
+	{
+		if ((m_row == p.m_row) && (m_col == p.m_col))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	bool operator!=(const Position& p)
+	{
+		if ((m_row != p.m_row) || (m_col == p.m_col))
+		{
+			return true;
+		}
+		return false;
+	}
+
+}Position;

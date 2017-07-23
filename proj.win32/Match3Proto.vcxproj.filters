@@ -23,6 +23,7 @@
     </ClCompile>
     <ClCompile Include="..\Candy.cpp" />
     <ClCompile Include="..\Classes\Chain.cpp" />
+    <ClCompile Include="..\Classes\GameMgr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -38,6 +39,7 @@
     <ClInclude Include="..\Candy.h" />
     <ClInclude Include="..\GameManager.h" />
     <ClInclude Include="..\Classes\Chain.h" />
+    <ClInclude Include="..\Classes\GameMgr.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="game.rc">
