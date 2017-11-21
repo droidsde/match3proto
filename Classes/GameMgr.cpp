@@ -7,6 +7,7 @@
 #include "Chain.h"
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 
 GameMgr* GameMgr::m_pInstance = nullptr;
@@ -20,318 +21,295 @@ GameMgr * GameMgr::GetInstance()
 	return m_pInstance;
 }
 
-void GameMgr::InitBoard(cocos2d::Layer *layer)
+void GameMgr::SetUpBoard(cocos2d::Layer *layer)
 {
-	int i = 0, j = 0;
-	m_board = new Candy**[BOARD_HEIGHT];
-	for (i = 0; i < BOARD_HEIGHT; i++)
-	{
-		m_board[i] = new Candy*[BOARD_WIDTH];
-	}
+	m_layer = layer;
+	int x = 0, y = 0;
 
 	auto seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::srand(seed);
 	int random = 0;
-
-	for (i = 0; i < BOARD_HEIGHT; i++)
+	/// x là chỉ số của cột, y là chỉ số của hàng.
+	/// gốc của board là góc dưới bên trái.
+	/// một tile có vị trí (x; y) = (hàng, cột)
+	for (x = 0; x < NUM_OF_COL; x++)
 	{
-		for (j = 0; j < BOARD_WIDTH; j++)
+		for (y = 0; y < NUM_OF_ROW; y++)
 		{
 			random = RAND_MIN_RANGE + std::rand() % (RAND_MAX_RANGE - RAND_MIN_RANGE + 1);
 			if (random <= 6) // 1 - 6
 			{
-				m_board[i][j] = Candy::createCandyWithFileName("candy/bean_green.png");
-				m_board[i][j]->m_value = TYPE_ONE;
+				m_board[x][y] = Candy::createCandyWithFileName("candy/type_one.png");
+				m_board[x][y]->m_type = TYPE_ONE;
 			}
 			else if (random <= 10) // 7 - 10
 			{
-				m_board[i][j] = Candy::createCandyWithFileName("candy/jelly_pink.png");
-				m_board[i][j]->m_value = TYPE_TWO;
+				m_board[x][y] = Candy::createCandyWithFileName("candy/type_two.png");
+				m_board[x][y]->m_type = TYPE_TWO;
 			}
 			else if (random <= 13) // 11 - 13
 			{
-				m_board[i][j] = Candy::createCandyWithFileName("candy/lollipop_blue.png");
-				m_board[i][j]->m_value = TYPE_THREE;
+				m_board[x][y] = Candy::createCandyWithFileName("candy/type_three.png");
+				m_board[x][y]->m_type = TYPE_THREE;
 			}
 			else if (random <= 15) // 14 - 15
 			{
-				m_board[i][j] = Candy::createCandyWithFileName("candy/mmstroke_brown.png");
-				m_board[i][j]->m_value = TYPE_FOUR;
+				m_board[x][y] = Candy::createCandyWithFileName("candy/type_four.png");
+				m_board[x][y]->m_type = TYPE_FOUR;
 			}
 			else // 17 - Max_range
 			{
-				m_board[i][j] = Candy::createCandyWithFileName("candy/swirl_pink.png");
-				m_board[i][j]->m_value = TYPE_FIVE;
+				m_board[x][y] = Candy::createCandyWithFileName("candy/type_five.png");
+				m_board[x][y]->m_type = TYPE_FIVE;
 			}
-			m_board[i][j]->m_pos = Position(i, j);
-			m_board[i][j]->setPosition(Point(TOP_LEFT_X + j*m_offsetX, TOP_LEFT_Y + i*m_offsetY));
-			layer->addChild(m_board[i][j], Z_INDEX_CANDY);
+			m_board[x][y]->setScale(SCALE_OF_TILE);
+			m_board[x][y]->m_coord = Coord(x, y);
+			m_board[x][y]->setPosition(GetPositionInWorld(Coord(x, y)));
+			layer->addChild(m_board[x][y], Z_INDEX_CANDY);
 		}
 	}
 
 }
 
-void GameMgr::InitBoardManual(const char * fileName)
+void GameMgr::SetUpBoardManual(cocos2d::Layer * layer, std::string fileName)
 {
-	int i = 0, j = 0;
-
-	std::ifstream in;
-	in.open(fileName);
-	int HEIGHT = 0, WIDTH = 0, countW = 0, countH = 0;
-	j = 0;
-
-	/// find out WIDTH & HEIGHT
-	char next;
-	while (!in.eof())
+	int type = 0;
+	m_layer = layer;
+	for (int x = 0; x < NUM_OF_COL; x++)
 	{
-		next = in.get();
-		switch (next)
+		for (int y = 0; y < NUM_OF_ROW; y++)
 		{
-		case '\n':
-		{
-			HEIGHT += 1;
-			countW = 0;
-		}
-		break;
-		case (char)32:
-		{
-		}
-		break;
-		default:
-		{
-			countW += 1;
-			if (countW > WIDTH)
+			type = m_boardType[x][y];
+			switch (type)
 			{
-				WIDTH = countW;
+			case 1:
+				m_board[x][y] = Candy::createCandyWithFileName("candy/type_one.png");
+				m_board[x][y]->m_type = TYPE_ONE;
+				m_board[x][y]->m_score = SCORE_ONE;
+				break;
+			case 2:
+				m_board[x][y] = Candy::createCandyWithFileName("candy/type_two.png");
+				m_board[x][y]->m_type = TYPE_TWO;
+				m_board[x][y]->m_score = SCORE_TWO;
+				break;
+			case 3:
+				m_board[x][y] = Candy::createCandyWithFileName("candy/type_three.png");
+				m_board[x][y]->m_type = TYPE_THREE;
+				m_board[x][y]->m_score = SCORE_THREE;
+				break;
+			case 4:
+				m_board[x][y] = Candy::createCandyWithFileName("candy/type_four.png");
+				m_board[x][y]->m_type = TYPE_FOUR;
+				m_board[x][y]->m_score = SCORE_FOUR;
+				break;
+			case 5:
+				m_board[x][y] = Candy::createCandyWithFileName("candy/type_five.png");
+				m_board[x][y]->m_type = TYPE_FIVE;
+				m_board[x][y]->m_score = SCORE_FIVE;
+				break;
+
+			default:
+				break;
+			}
+			m_board[x][y]->setScale(SCALE_OF_TILE);
+			m_board[x][y]->m_coord = Coord(x, y);
+			m_board[x][y]->setPosition(GetPositionInWorldMan(Coord(x, y)));
+			layer->addChild(m_board[x][y], Z_INDEX_CANDY);
+		}
+	}
+}
+
+void GameMgr::SetUpBoardType(std::string fileName)
+{
+	std::ifstream	file(fileName);
+	if (!file.is_open())
+	{
+		CCLOG("Could not open file '%s' !", fileName.c_str());
+		return;
+	}
+	std::string line;
+	int		y = 0;
+	while (std::getline(file, line))
+	{
+		std::istringstream	iss(line);
+		for (int x = 0; x < NUM_OF_COL; x++)
+		{
+			iss >> m_boardType[x][y];
+		}
+		y++;
+	}
+	file.close();
+}
+
+void GameMgr::PrintBoardType()
+{
+	for (int x = 0; x < NUM_OF_COL; x++)
+	{
+		for (int y = 0; y < NUM_OF_ROW; y++)
+		{
+			CCLOG(" %d ", m_boardType[x][y]);
+		}
+		
+	}
+}
+
+void GameMgr::ClearBoardType()
+{
+	for (int x = 0; x < NUM_OF_COL; x++)
+	{
+		for (int y = 0; y < NUM_OF_ROW; y++)
+		{
+			m_boardType[x][y] = 0;
+		}
+	}
+}
+
+
+void	GameMgr::RemoveTile(int x, int y)
+{
+	m_layer->removeChild(m_board[x][y]);
+	m_board[x][y] = nullptr;
+}
+
+void GameMgr::Update(float dt)
+{
+	// process user's input
+	if ((m_firstPos != INIT_COORD) && (m_secondPos != INIT_COORD))
+	{
+#if DEBUGGABLE
+		CCLOG("--- giap: before swap ---");
+		CCLOG("--- giap: 1st(%d, %d) %d ", m_firstPos.m_x, m_firstPos.m_y, m_board[m_firstPos.m_x][m_firstPos.m_y]->m_type);
+		CCLOG("--- giap: 2nd(%d, %d) %d ", m_secondPos.m_x, m_secondPos.m_y, m_board[m_secondPos.m_x][m_secondPos.m_y]->m_type);
+#endif
+#if MANUAL_SETUP
+		if (IsValidSwapMan())
+		{
+			SwapTilesMan();
+		}
+		else
+		{
+			m_firstPos = INIT_COORD;
+			m_secondPos = INIT_COORD;
+		}
+#else
+		if (IsValidSwap())
+		{
+			SwapTiles();
+		}
+		else
+		{
+			m_firstPos = INIT_COORD;
+			m_secondPos = INIT_COORD;
+		}
+#endif
+#if DEBUGGABLE
+		CCLOG("--- giap: after swap ---");
+		CCLOG("--- giap: 1st(%d, %d) %d ", m_firstPos.m_x, m_firstPos.m_y, m_board[m_firstPos.m_x][m_firstPos.m_y]->m_type);
+		CCLOG("--- giap: 2nd(%d, %d) %d ", m_secondPos.m_x, m_secondPos.m_y, m_board[m_secondPos.m_x][m_secondPos.m_y]->m_type);
+#endif
+		// kiem tra xem co match-3 ở vị trí vừa swap ko
+		// nếu k có thì swap trở lại.
+		if (!CheckMatch3AfterSwap())
+		{
+			CCLOG("--- giap: Undo Swap Tile ----");
+#if MANUAL_SETUP
+			SwapTilesMan();
+#else
+			SwapTiles();
+#endif
+		}
+		// swap xong thì remove 2 tọa độ đã lưu
+		m_firstPos = INIT_COORD;
+		m_secondPos = INIT_COORD;
+		m_isSwaping = false; // enable touch from player
+	}
+
+	// finding match-3 & remove if find out.
+	CheckAllMatch3();
+	if (GetNumOfAllChains() > 0)
+	{
+		PrintAllMatch3();
+		// tinh diem
+		m_currScore = CalculateScore();
+		// remove all chain
+		RemoveAllMatch3();
+		
+		m_allChainsVertical.clear();
+		m_allChainsHorizontal.clear();
+	}
+	else
+	{
+		CCLOG("--- KO TIM THAY CHAIN NAO !");
+	}
+
+	UpdateScore();
+	UpdateTimer(dt);
+	// re-fill board if board isn't full.
+	ReFillBoard();
+
+}
+
+void	GameMgr::CheckMatchThreeInRow()
+{
+	/// for each row:
+	/// n: number of tile is same type
+	/// n = 1
+	/// if currentTile == previousTile: n += 1
+	/// else if (n < 3): n = 1
+	/// else if (n >= 3): call func to remove these tiles.
+	for (int y = 0; y < NUM_OF_ROW; y++)
+	{
+		int  numOfSameTile = 1;
+		for (int x = 1; x < NUM_OF_COL; x++)
+		{
+			Candy*		currentTile = m_board[x][y];
+			Candy*		previousTile = m_board[x - 1][y];
+			if (currentTile->m_type == previousTile->m_type)
+			{
+				numOfSameTile += 1;
+			}
+			else if (numOfSameTile < 3)
+			{
+				numOfSameTile = 1;
+			}
+			else if (numOfSameTile >= 3)
+			{
+				/// call func to remove these tiles.
+				CCLOG("----- Remove match-%d ----", numOfSameTile);
 			}
 		}
-		break;
-		}
 	}
+}
 
-	m_height = HEIGHT;
-	m_width = WIDTH;
+Vec2	GameMgr::GetPositionInWorld(Coord &c)
+{
+	/// p là vị trí của tile (viên kẹo) trong board.
+	/// return vị trí của tile (viên kẹo) trong màn hình.
+	return Vec2(BOT_LEFT_X + c.m_x * OFFSET_X, BOT_LEFT_Y + c.m_y * OFFSET_Y);
+}
 
-	m_board = new Candy**[HEIGHT];
-	for (i = 0; i < HEIGHT; i++)
-	{
-		m_board[i] = new Candy*[WIDTH];
-	}
-
-	/// return to beginning of file.
-	in.clear();
-	in.seekg(0, in.beg);
-	for (i = 0; i < HEIGHT; i++)
-	{
-		j = 0;
-		do
-		{
-			next = in.get();
-			//printf("  %c  ", next);
-			if (next != (char)32 && next != '\n')	/// ki tu space && '\n'
-			{
-				int value = -1;
-				switch (next)
-				{
-				case '1':
-					value = 1;
-					break;
-				case '2':
-					value = 2;
-					break;
-				case '3':
-					value = 3;
-					break;
-				case '4':
-					value = 4;
-					break;
-				case '5':
-					value = 5;
-					break;
-				default:
-					break;
-				}
-				m_board[i][j]->m_value = value;
-				m_board[i][j]->m_pos = Position(i, j);
-				j += 1;
-			}
-		} while (next != '\n');
-
-	}
-
-	in.close();
-
-
-
-
-
-
+Vec2 GameMgr::GetPositionInWorldMan(Coord & c)
+{
+	return Vec2(TOP_LEFT_X + c.m_x * OFFSET_X, TOP_LEFT_Y - c.m_y * OFFSET_Y);
 }
 
 void GameMgr::PrintBoard()
 {
-	printf("-----------------\n");
-	printf("W = %d, H = %d\n", BOARD_WIDTH, BOARD_HEIGHT);
-	int i = 0, j = 0;
-	for (i = 0; i < BOARD_HEIGHT; i++)
+	CCLOG("=========================");
+	CCLOG("COLUMN = %d, ROW = %d", NUM_OF_COL, NUM_OF_ROW);
+	int x = 0, y = 0;
+	for (x = 0; x < NUM_OF_COL; x++)
 	{
-		for (j = 0; j < BOARD_WIDTH; j++)
+		CCLOG("x = %d", x);
+		for (y = 0; y < NUM_OF_ROW; y++)
 		{
-			printf(" %2d ", m_board[i][j]->m_value);
+			CCLOG(" %2d ", m_board[x][y]->m_type);
 		}
-		printf("\n");
+		CCLOG("-------------------");
 	}
+	CCLOG("=========================");
 }
 
-void GameMgr::PrintBoard(int width, int height)
-{
-	printf("-----------------\n");
-	printf("W = %d, H = %d\n", width, height);
-	int i = 0, j = 0;
-	for (i = 0; i < height; i++)
-	{
-		for (j = 0; j < width; j++)
-		{
-			printf(" %2d ", m_board[i][j]->m_value);
-		}
-		printf("\n");
-	}
-}
-
-void GameMgr::CheckMatchVertical(Candy* currCandy, int width, int height)
-{
-	/// ktra nếu ptu đang xét đã thuộc 1 chain vertical nào đó rồi thì bỏ qua.
-	Position		posOfCandy = currCandy->m_pos;
-	for (auto it = m_allChains.begin(); it != m_allChains.end(); it++)
-	{
-		auto chain = (*it);
-		if (chain->m_isVertical && chain->CheckIfInChain(posOfCandy))
-		{
-			return;
-		}
-	}
-
-	int		typeOfCandy;
-	Chain*	chain = new Chain;
-	/// khởi tạo chuỗi ban đầu bằng ptu đang xét.
-	chain->m_first = posOfCandy;
-	chain->m_last = posOfCandy;
-	chain->m_isVertical = true;
-	chain->m_length = 1;
-	chain->m_typeOfChain = currCandy->m_value;
-
-	const int row = posOfCandy.m_row;
-	const int column = posOfCandy.m_col;
-
-	int i = 0;
-	/// duyệt từ ptu == candy lên phía trên.
-	for (i = row + 1; i < height; i++)
-	{
-		typeOfCandy = m_board[i][column]->m_value;
-		if (chain->CheckIfSameTypeChain(typeOfCandy))
-		{
-			chain->AddOneNodeToChain(Position(i, column));
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	/// duyệt từ ptu == candy xuống phía dưới.
-	for (i = row - 1; i >= 0; i--)
-	{
-		typeOfCandy = m_board[i][column]->m_value;
-		if (chain->CheckIfSameTypeChain(typeOfCandy))
-		{
-			chain->AddOneNodeToChain(Position(i, column));
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	/// ktra nếu length của chain >=3 thì add vào m_allChains.
-	if (chain->m_length >= 3)
-	{
-		chain->FixChain();
-		m_allChains.push_back(chain);
-	}
-}
-
-void GameMgr::CheckMatchHorizontal(Candy* currCandy, int width, int height)
-{
-	/// ktra nếu ptu đang xét đã thuộc 1 chain horizontal nào đó rồi thì bỏ qua.
-	Position		posOfCandy = currCandy->m_pos;
-	for (auto it = m_allChains.begin(); it != m_allChains.end(); it++)
-	{
-		auto chain = (*it);
-		if ((chain->m_isVertical == false) && chain->CheckIfInChain(posOfCandy) == true)
-		{
-			return;
-		}
-	}
-	int  typeOfCandy;
-	Chain*	chain = new Chain;
-	/// khởi tạo chuỗi ban đầu bằng ptu đang xét.
-	chain->m_first = posOfCandy;
-	chain->m_last = posOfCandy;
-	chain->m_isVertical = false;
-	chain->m_length = 1;
-	chain->m_typeOfChain = currCandy->m_value;
-
-	const int row = posOfCandy.m_row;
-	const int column = posOfCandy.m_col;
-
-	int i = 0;
-	/// duyệt từ ptu == candy sang bên phải
-	for (i = column + 1; i < width; i++)
-	{
-		typeOfCandy = m_board[row][i]->m_value;
-		if (chain->CheckIfSameTypeChain(typeOfCandy))
-		{
-			chain->AddOneNodeToChain(Position(row, i));
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	/// duyệt từ ptu == candy sang bên trái
-	for (i = column - 1; i >= 0; i--)
-	{
-		typeOfCandy = m_board[row][i]->m_value;
-		if (chain->CheckIfSameTypeChain(typeOfCandy))
-		{
-			chain->AddOneNodeToChain(Position(row, i));
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	/// ktra nếu length của chain >=3 thì add vào m_allChains.
-	if (chain->m_length >= 3)
-	{
-		chain->FixChain();
-		m_allChains.push_back(chain);
-	}
-}
-
-void GameMgr::CheckAllMatch3(int width, int height)
-{
-	for (int i = 0; i < height; i++)
-	{
-		for (int j = 0; j < width; j++)
-		{
-			CheckMatchHorizontal(m_board[i][j], width, height);
-			CheckMatchVertical(m_board[i][j], width, height);
-		}
-	}
-}
 
 void GameMgr::CheckMatchVertical(Candy* currCandy, bool isAfterSwap /* false*/)
 {
@@ -339,40 +317,34 @@ void GameMgr::CheckMatchVertical(Candy* currCandy, bool isAfterSwap /* false*/)
 	{
 		return;
 	}
-	/// ktra nếu ptu đang xét đã thuộc 1 chain nào đó rồi thì bỏ qua.
-	Position		posOfCandy = currCandy->m_pos;
-	for (auto it = m_allChains.begin(); it != m_allChains.end(); it++)
+	/// ktra nếu ptu đang xét đã thuộc 1 chain nào đó (trong tất cả các chain dọc) rồi thì bỏ qua.
+	Coord		posOfCandy = currCandy->m_coord;
+	const int currType = currCandy->m_type;
+	const int currScore = currCandy->m_score;
+	for (auto it = m_allChainsVertical.begin(); it != m_allChainsVertical.end(); it++)
 	{
 		auto chain = (*it);
-		if (chain->m_isVertical && chain->CheckIfInChain(posOfCandy))
+		if (chain.CheckIfInChain(currType, posOfCandy.m_x, posOfCandy.m_y))
 		{
 			return;
 		}
 	}
 
-	int		typeOfCandy;
-	Chain*	chain = new Chain;
 	/// khởi tạo chuỗi ban đầu bằng ptu đang xét.
-	chain->m_first = posOfCandy;
-	chain->m_last = posOfCandy;
-	chain->m_isVertical = true;
-	chain->m_length = 1;
-	chain->m_typeOfChain = currCandy->m_value;
-	chain->m_firstPosition = currCandy->getPosition();
+	Chain	chain(currType, posOfCandy.m_x, posOfCandy.m_y, posOfCandy.m_x, posOfCandy.m_y, true, currScore);
 
-	const int row = posOfCandy.m_row;
-	const int column = posOfCandy.m_col;
+	const int posX = posOfCandy.m_x;
+	const int posY = posOfCandy.m_y;
 
-	int i = 0;
+	int y = 0;
 	/// duyệt từ ptu == candy lên phía trên.
-	for (i = row + 1; i < BOARD_HEIGHT; i++)
+	for (y = posY + 1; y < NUM_OF_ROW; y++)
 	{
-		if (m_board[i][column] != nullptr)
+		if (m_board[posX][y] != nullptr)
 		{
-			typeOfCandy = m_board[i][column]->m_value;
-			if (chain->CheckIfSameTypeChain(typeOfCandy))
+			if (m_board[posX][y]->m_type == currType)
 			{
-				chain->AddOneNodeToChain(Position(i, column));
+				chain.AddOneNodeToChain(posX, y);
 			}
 			else
 			{
@@ -382,14 +354,13 @@ void GameMgr::CheckMatchVertical(Candy* currCandy, bool isAfterSwap /* false*/)
 	}
 
 	/// duyệt từ ptu == candy xuống phía dưới.
-	for (i = row - 1; i >= 0; i--)
+	for (y = posY - 1; y >= 0; y--)
 	{
-		if (m_board[i][column] != nullptr)
+		if (m_board[posX][y] != nullptr)
 		{
-			typeOfCandy = m_board[i][column]->m_value;
-			if (chain->CheckIfSameTypeChain(typeOfCandy))
+			if (m_board[posX][y]->m_type == currType)
 			{
-				chain->AddOneNodeToChain(Position(i, column));
+				chain.AddOneNodeToChain(posX, y);
 			}
 			else
 			{
@@ -399,18 +370,13 @@ void GameMgr::CheckMatchVertical(Candy* currCandy, bool isAfterSwap /* false*/)
 	}
 
 	/// ktra nếu length của chain >=3 thì add vào m_allChains.
-	if (chain->m_length >= 3)
+	if (chain.GetLength() >= 3)
 	{
-		chain->FixChain();
-		m_allChains.push_back(chain);
+		m_allChainsVertical.push_back(chain);
 		if (isAfterSwap)
 		{
-			m_chainAfterSwap.push_back(chain);
+			m_chainVerticalAfterSwap.push_back(chain);
 		}
-	}
-	else
-	{
-		delete chain;
 	}
 }
 
@@ -420,39 +386,34 @@ void GameMgr::CheckMatchHorizontal(Candy* currCandy, bool isAfterSwap /* false *
 	{
 		return;
 	}
-	/// ktra nếu ptu đang xét đã thuộc 1 chain nào đó rồi thì bỏ qua.
-	Position		posOfCandy = currCandy->m_pos;
-	for (auto it = m_allChains.begin(); it != m_allChains.end(); it++)
+	/// ktra nếu ptu đang xét đã thuộc 1 chain nào đó (trong tất cả các chain ngang) rồi thì bỏ qua.
+	Coord		posOfCandy = currCandy->m_coord;
+	const int		currType = currCandy->m_type;
+	const int		currScore = currCandy->m_score;
+	for (auto it = m_allChainsHorizontal.begin(); it != m_allChainsHorizontal.end(); it++)
 	{
 		auto chain = (*it);
-		if ((chain->m_isVertical == false) && chain->CheckIfInChain(posOfCandy) == true)
+		if (chain.CheckIfInChain(currType, posOfCandy.m_x, posOfCandy.m_y))
 		{
 			return;
 		}
 	}
-	int  typeOfCandy;
-	Chain*	chain = new Chain;
-	/// khởi tạo chuỗi ban đầu bằng ptu đang xét.
-	chain->m_first = posOfCandy;
-	chain->m_last = posOfCandy;
-	chain->m_isVertical = false;
-	chain->m_length = 1;
-	chain->m_typeOfChain = currCandy->m_value;
-	chain->m_firstPosition = currCandy->getPosition();
 
-	const int row = posOfCandy.m_row;
-	const int column = posOfCandy.m_col;
+	/// khởi tạo chuỗi ban đầu bằng ptu đang xét.	
+	Chain	chain(currType, posOfCandy.m_x, posOfCandy.m_y, posOfCandy.m_x, posOfCandy.m_y, false, currScore);
 
-	int i = 0;
+	const int posX = posOfCandy.m_x;
+	const int posY = posOfCandy.m_y;
+
+	int x = 0;
 	/// duyệt từ ptu == candy sang bên phải
-	for (i = column + 1; i < BOARD_WIDTH; i++)
+	for (x = posX + 1; x < NUM_OF_COL; x++)
 	{
-		if (m_board[row][i] != nullptr)
+		if (m_board[x][posY] != nullptr)
 		{
-			typeOfCandy = m_board[row][i]->m_value;
-			if (chain->CheckIfSameTypeChain(typeOfCandy))
+			if (m_board[x][posY]->m_type == currType)
 			{
-				chain->AddOneNodeToChain(Position(row, i));
+				chain.AddOneNodeToChain(x, posY);
 			}
 			else
 			{
@@ -462,14 +423,13 @@ void GameMgr::CheckMatchHorizontal(Candy* currCandy, bool isAfterSwap /* false *
 	}
 
 	/// duyệt từ ptu == candy sang bên trái
-	for (i = column - 1; i >= 0; i--)
+	for (x = posX - 1; x >= 0; x--)
 	{
-		if (m_board[row][i] != nullptr)
+		if (m_board[x][posY] != nullptr)
 		{
-			typeOfCandy = m_board[row][i]->m_value;
-			if (chain->CheckIfSameTypeChain(typeOfCandy))
+			if (m_board[x][posY]->m_type == currType)
 			{
-				chain->AddOneNodeToChain(Position(row, i));
+				chain.AddOneNodeToChain(x, posY);
 			}
 			else
 			{
@@ -479,261 +439,231 @@ void GameMgr::CheckMatchHorizontal(Candy* currCandy, bool isAfterSwap /* false *
 	}
 
 	/// ktra nếu length của chain >=3 thì add vào m_allChains.
-	if (chain->m_length >= 3)
+	if (chain.GetLength() >= 3)
 	{
-		chain->FixChain();
-		m_allChains.push_back(chain);
+		m_allChainsHorizontal.push_back(chain);
 		if (isAfterSwap)
 		{
-			m_chainAfterSwap.push_back(chain);
+			m_chainHorizontalAfterSwap.push_back(chain);
 		}
-	}
-	else
-	{
-		delete chain;
 	}
 }
 
 void GameMgr::CheckAllMatch3()
 {
-	for (int i = 0; i < BOARD_HEIGHT; i++)
+	if (m_isBoardFilled)
 	{
-		for (int j = 0; j < BOARD_WIDTH; j++)
+		CCLOG("--- Checking all match 3 ...");
+		for (int x = 0; x < NUM_OF_COL; x++)
 		{
-			CheckMatchHorizontal(m_board[i][j]);
-			CheckMatchVertical(m_board[i][j]);
+			for (int y = 0; y < NUM_OF_ROW; y++)
+			{
+				CheckMatchHorizontal(m_board[x][y]);
+				CheckMatchVertical(m_board[x][y]);
+			}
 		}
 	}
 }
 
-void	GameMgr::CheckMatch3AfterSwap()
+bool	GameMgr::CheckMatch3AfterSwap()
 {
-	CheckMatchHorizontal(m_firstObj, true);
-	CheckMatchVertical(m_firstObj, true);
+	/*
+	/	return true nếu tại 2 tile vừa swap có match-3, ngược lại false.
+	*/
+	CheckMatchHorizontal(m_board[m_firstPos.m_x][m_firstPos.m_y], true);
+	CheckMatchVertical(m_board[m_firstPos.m_x][m_firstPos.m_y], true);
 
-	CheckMatchHorizontal(m_secondObj, true);
-	CheckMatchVertical(m_secondObj, true);
+	CheckMatchHorizontal(m_board[m_secondPos.m_x][m_secondPos.m_y], true);
+	CheckMatchVertical(m_board[m_secondPos.m_x][m_secondPos.m_y], true);
+	if (GetNumOfChainAfterSwap() > 0)
+	{
+		return true;
+	}
+	return false;
 }
 
-void GameMgr::PrintAllMatch3()
+bool GameMgr::IsValidSwapMan()
 {
-	if (m_allChains.size() > 0)
+	// check if these tiles are same row.
+	if (m_firstPos.m_y == m_secondPos.m_y)
 	{
-		auto it = m_allChains.begin();
-		for (; it != m_allChains.end(); it++)
+		if (m_firstPos.m_x == (m_secondPos.m_x + 1) || (m_firstPos.m_x + 1) == m_secondPos.m_x)
 		{
-			(*it)->PrintChain();
+			return true;
+		}
+	}
+	// check if these tiles are same column.
+	else if (m_firstPos.m_x == m_secondPos.m_x)
+	{
+		if (m_firstPos.m_y == (m_secondPos.m_y + 1) || (m_firstPos.m_y + 1) == m_secondPos.m_y)
+		{
+			return true;
 		}
 	}
 	else
 	{
-		printf("The board have no match-3 !\n");
+		return false;
 	}
 }
 
-void GameMgr::RemoveAllMatch3(cocos2d::Layer *layer)
+void GameMgr::PrintAllMatch3()
 {
-	if (m_allChains.size() > 0)
+	if (m_allChainsVertical.size() > 0)
 	{
-		auto it = m_allChains.begin();
-		for (; it != m_allChains.end(); it++)
+		CCLOG("--- giap: Tong so chain vertical: %d ", m_allChainsVertical.size());
+		auto it = m_allChainsVertical.begin();
+		for (; it != m_allChainsVertical.end(); it++)
 		{
-			auto chain = (*it);
-
-			if (chain->m_isVertical)
-			{
-				const int col = chain->m_first.m_col;
-				for (int row = chain->m_first.m_row; row <= chain->m_last.m_row; row++)
-				{
-					m_board[row][col]->DisAppear();
-					layer->removeChild(m_board[row][col]);
-					m_board[row][col] = nullptr;
-				}
-			}
-			else
-			{
-				const int row = chain->m_first.m_row;
-				for (int col = chain->m_first.m_col; col <= chain->m_last.m_col; col++)
-				{
-					m_board[row][col]->DisAppear();
-					layer->removeChild(m_board[row][col]);
-					m_board[row][col] = nullptr;
-				}
-			}
-			chain = nullptr;
+			(*it).PrintChain();
 		}
-		m_allChains.clear();
+	}
+	else
+	{
+		CCLOG("--- giap: Ko co chain Vertical nao ! ");
+	}
+
+	if (m_allChainsHorizontal.size() > 0)
+	{
+		CCLOG("--- giap: Tong so chain horizontal: %d ", m_allChainsHorizontal.size());
+		auto it = m_allChainsHorizontal.begin();
+		for (; it != m_allChainsHorizontal.end(); it++)
+		{
+			(*it).PrintChain();
+		}
+	}
+	else
+	{
+		CCLOG("--- giap: Ko co chain Horizontal nao ! ");
 	}
 }
 
-void	GameMgr::ReFillBoard(cocos2d::Layer *layer)
+void	GameMgr::ReFillBoard()
 {
-	if (m_allChains.size() > 0)
+	if (!m_isBoardFilled)
 	{
-		CCLOG("Re fill board !");
+		CCLOG("--- Refilling board...");
 		auto seed = std::chrono::system_clock::now().time_since_epoch().count();
 		std::srand(seed);
 		int random = 0;
-		auto it = m_allChains.begin();
-		for (; it != m_allChains.end(); it++)
+
+		for (int x = 0; x < NUM_OF_COL; x++)
 		{
-			auto chain = (*it);
-			const int posX = chain->m_firstPosition.x;
-			const int posY = chain->m_firstPosition.y;
-			if (chain->m_isVertical)
+			for (int y = 0; y < NUM_OF_ROW; y++)
 			{
-				const int col = chain->m_first.m_col;
-				int i = 1;
-				for (int row = chain->m_first.m_row; row <= chain->m_last.m_row; row++)
+				if (!m_board[x][y])
 				{
 					random = RAND_MIN_RANGE + std::rand() % (RAND_MAX_RANGE - RAND_MIN_RANGE + 1);
-					if (random <= 6) // 1 - 6
+					if (random <= 6) // 1 - 6 ~ 35%
 					{
-						m_board[row][col] = Candy::createCandyWithFileName("candy/bean_blue.png");
-						m_board[row][col]->m_value = TYPE_ONE;
+						m_board[x][y] = Candy::createCandyWithFileName("candy/type_one.png");
+						m_board[x][y]->m_type = TYPE_ONE;
+						m_board[x][y]->m_score = SCORE_ONE;
 					}
-					else if (random <= 10) // 7 - 10
+					else if (random <= 10) // 7 - 10 ~ 20%
 					{
-						m_board[row][col] = Candy::createCandyWithFileName("candy/bean_green.png");
-						m_board[row][col]->m_value = TYPE_TWO;
+						m_board[x][y] = Candy::createCandyWithFileName("candy/type_two.png");
+						m_board[x][y]->m_type = TYPE_TWO;
+						m_board[x][y]->m_score = SCORE_TWO;
 					}
-					else if (random <= 13) // 11 - 13
+					else if (random <= 13) // 11 - 13 ~ 15%
 					{
-						m_board[row][col] = Candy::createCandyWithFileName("candy/bean_orange.png");
-						m_board[row][col]->m_value = TYPE_THREE;
+						m_board[x][y] = Candy::createCandyWithFileName("candy/type_three.png");
+						m_board[x][y]->m_type = TYPE_THREE;
+						m_board[x][y]->m_score = SCORE_THREE;
 					}
-					else if (random <= 15) // 14 - 15
+					else if (random <= 15) // 14 - 15 ~ 10%
 					{
-						m_board[row][col] = Candy::createCandyWithFileName("candy/bean_pink.png");
-						m_board[row][col]->m_value = TYPE_FOUR;
+						m_board[x][y] = Candy::createCandyWithFileName("candy/type_four.png");
+						m_board[x][y]->m_type = TYPE_FOUR;
+						m_board[x][y]->m_score = SCORE_FOUR;
 					}
-					else // 17 - Max_range
+					else // 17 - 20 ~ 20%
 					{
-						m_board[row][col] = Candy::createCandyWithFileName("candy/bean_yellow.png");
-						m_board[row][col]->m_value = TYPE_FIVE;
+						m_board[x][y] = Candy::createCandyWithFileName("candy/type_five.png");
+						m_board[x][y]->m_type = TYPE_FIVE;
+						m_board[x][y]->m_score = SCORE_FIVE;
 					}
-					layer->addChild(m_board[row][col], Z_INDEX_CANDY);
-					m_board[row][col]->setPosition(Vec2(posX, posY + i*m_offsetY));
-					i += 1;
-					m_board[row][col]->m_pos = Position(row, col);
-				}
-			}
-			else
-			{
-				const int row = chain->m_first.m_row;
-				int j = 1;
-				for (int col = chain->m_first.m_col; col <= chain->m_last.m_col; col++)
-				{
-					random = RAND_MIN_RANGE + std::rand() % (RAND_MAX_RANGE - RAND_MIN_RANGE + 1);
-					if (random <= 6) // 1 - 6
-					{
-						m_board[row][col] = Candy::createCandyWithFileName("candy/bean_blue.png");
-						m_board[row][col]->m_value = TYPE_ONE;
-					}
-					else if (random <= 10) // 7 - 10
-					{
-						m_board[row][col] = Candy::createCandyWithFileName("candy/bean_green.png");
-						m_board[row][col]->m_value = TYPE_TWO;
-					}
-					else if (random <= 13) // 11 - 13
-					{
-						m_board[row][col] = Candy::createCandyWithFileName("candy/bean_orange.png");
-						m_board[row][col]->m_value = TYPE_THREE;
-					}
-					else if (random <= 15) // 14 - 15
-					{
-						m_board[row][col] = Candy::createCandyWithFileName("candy/bean_pink.png");
-						m_board[row][col]->m_value = TYPE_FOUR;
-					}
-					else // 17 - Max_range
-					{
-						m_board[row][col] = Candy::createCandyWithFileName("candy/bean_yellow.png");
-						m_board[row][col]->m_value = TYPE_FIVE;
-					}
-					layer->addChild(m_board[row][col], Z_INDEX_CANDY);
-					m_board[row][col]->setPosition(Vec2(posX + j*m_offsetX, posY));
-					j += 1;
-					m_board[row][col]->m_pos = Position(row, col);
+					m_board[x][y]->setScale(SCALE_OF_TILE);
+					m_board[x][y]->m_coord = Coord(x, y);
+					m_board[x][y]->setPosition(GetPositionInWorldMan(Coord(x, y)));
+					m_layer->addChild(m_board[x][y], Z_INDEX_CANDY);
+					CCLOG("Refill (%d,%d) type = %d ", x, y, m_board[x][y]->m_type);
 				}
 			}
 		}
+		m_isBoardFilled = true;
 	}
 
 }
 
-void	GameMgr::TestReFillBoard(cocos2d::Layer *layer)
+void	GameMgr::RemoveAllMatch3()
 {
-	int i = 0, j = 0;
-	auto seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::srand(seed);
-	int random = 0;
-
-	for (i = 0; i < BOARD_HEIGHT; i++)
+	m_isBoardFilled = true;
+	if (m_allChainsHorizontal.size() > 0)
 	{
-		for (j = 0; j < BOARD_WIDTH; j++)
+		auto it = m_allChainsHorizontal.begin();
+		auto endChain = m_allChainsHorizontal.end();
+		
+		for (; it != endChain; it++)
 		{
-			if (m_board[i][j] == nullptr)
+			const int xBegin = (*it).m_firstX;
+			const int xEnd = (*it).m_lastX;
+			const int y = (*it).m_firstY;
+			(*it).PrintClearChain();
+			for (int x = xBegin; x <= xEnd; x++)
 			{
-				random = RAND_MIN_RANGE + std::rand() % (RAND_MAX_RANGE - RAND_MIN_RANGE + 1);
-				if (random <= 6) // 1 - 6
-				{
-					m_board[i][j] = Candy::createCandyWithFileName("candy/bean_blue.png");
-					m_board[i][j]->m_value = TYPE_ONE;
-				}
-				else if (random <= 10) // 7 - 10
-				{
-					m_board[i][j] = Candy::createCandyWithFileName("candy/bean_green.png");
-					m_board[i][j]->m_value = TYPE_TWO;
-				}
-				else if (random <= 13) // 11 - 13
-				{
-					m_board[i][j] = Candy::createCandyWithFileName("candy/bean_orange.png");
-					m_board[i][j]->m_value = TYPE_THREE;
-				}
-				else if (random <= 15) // 14 - 15
-				{
-					m_board[i][j] = Candy::createCandyWithFileName("candy/bean_pink.png");
-					m_board[i][j]->m_value = TYPE_FOUR;
-				}
-				else // 17 - Max_range
-				{
-					m_board[i][j] = Candy::createCandyWithFileName("candy/bean_yellow.png");
-					m_board[i][j]->m_value = TYPE_FIVE;
-				}
-				m_board[i][j]->m_pos = Position(i, j);
-				m_board[i][j]->setPosition(Point(TOP_LEFT_X + j*m_offsetX, TOP_LEFT_Y + i*m_offsetY));
-				m_board[i][j]->Appear();
-				layer->addChild(m_board[i][j], Z_INDEX_CANDY);
+				RemoveTile(x, y);
 			}
 		}
 	}
+
+	if (m_allChainsVertical.size() > 0)
+	{
+		auto it = m_allChainsVertical.begin();
+		auto endChain = m_allChainsVertical.end();
+
+		for (; it != endChain; it++)
+		{
+			const int yBegin = (*it).m_firstY;
+			const int yEnd = (*it).m_lastY;
+			const int x = (*it).m_firstX;
+			(*it).PrintClearChain();
+			for (int y = yBegin; y <= yEnd; y++)
+			{
+				RemoveTile(x, y);
+			}
+		}
+	}
+	m_isBoardFilled = false;
 }
 
-void	GameMgr::RemoveAllChain()
-{
-	m_allChains.clear();
-}
+
 
 void	GameMgr::CheckAllSprite(Vec2 &p)
 {
-	for (int i = 0; i < BOARD_HEIGHT; i++)
+	for (int x = 0; x < NUM_OF_COL; x++)
 	{
-		for (int j = 0; j < BOARD_WIDTH; j++)
+		for (int y = 0; y < NUM_OF_ROW; y++)
 		{
-			if (m_board[i][j] && m_board[i][j]->IsSelected(p))
+			if (m_board[x][y] && m_board[x][y]->IsSelected(p))
 			{
-				if (m_firstObj == nullptr)
+				if (m_firstPos == INIT_COORD)
 				{
-					m_firstObj = m_board[i][j];
-					CCLOG("m_first dc chon !, pos: %f, %f", m_firstObj->getPositionX(), m_firstObj->getPositionY());
+					m_firstPos = Coord(x, y);
+#if DEBUGGABLE
+					CCLOG("m_first dc chon %d;%d", x, y);
+#endif // DEBUGGABLE
+#if ENABLE_ANIMATION
+					m_board[x][y]->SelectAnimation();
+#endif
+
 				}
 				else
 				{
-					if (m_firstObj != m_board[i][j])
-					{
-						m_secondObj = m_board[i][j];
-						CCLOG("m_second dc chon !, pos: %f, %f", m_secondObj->getPositionX(), m_secondObj->getPositionY());
-					}
+					m_secondPos = Coord(x, y);
+#if DEBUGGABLE
+					CCLOG("m_second dc chon %d;%d", x, y);
+#endif // DEBUGGABLE
 				}
 				return;
 			}
@@ -741,170 +671,168 @@ void	GameMgr::CheckAllSprite(Vec2 &p)
 	}
 }
 
-bool		GameMgr::IsSwappable()
+bool		GameMgr::IsValidSwap()
 {
-	auto m_index1st = m_firstObj->m_pos;
-	auto m_index2nd = m_secondObj->m_pos;
-	/// same row
-	if (m_index1st.m_row == m_index2nd.m_row)
+	/*
+	/ chỉ cho phép swap 2 tile cạnh nhau theo chiều ngang hoặc dọc.
+	/ return true nếu thỏa mãn đk swap, ngược lại false.
+	*/
+
+	// check if these tiles are same row.
+	if (m_firstPos.m_y == m_secondPos.m_y)
 	{
-		if (m_index1st.m_col == (m_index2nd.m_col + 1) || (m_index1st.m_col + 1) == m_index2nd.m_col)
+		if (m_firstPos.m_x == (m_secondPos.m_x + 1) || (m_firstPos.m_x + 1) == m_secondPos.m_x)
 		{
 			return true;
 		}
 	}
-	///same column
-	else if (m_index1st.m_col == m_index2nd.m_col)
+	// check if these tiles are same column.
+	else if (m_firstPos.m_x == m_secondPos.m_x)
 	{
-		if (m_index1st.m_row == (m_index2nd.m_row + 1) || (m_index1st.m_row + 1) == m_index2nd.m_row)
+		if (m_firstPos.m_y == (m_secondPos.m_y + 1) || (m_firstPos.m_y + 1) == m_secondPos.m_y)
 		{
 			return true;
 		}
 	}
-	return false;
-
-}
-
-bool	GameMgr::IsPossibleSwap()
-{
-	if (m_firstObj && m_secondObj)
+	else
 	{
-		return true;
+		return false;
 	}
-	return false;
 }
 
-void		GameMgr::Swap()
+void GameMgr::SetupLabel(cocos2d::Layer * layer)
 {
-	/// swap position
-	auto pos1st = m_firstObj->getPosition();
-	auto pos2nd = m_secondObj->getPosition();
-	m_oldPos1 = pos1st;
-	m_oldPos2 = pos2nd;
-	CCLOG("-----------Swap----------");
-	CCLOG("before 1st position: %f, %f", pos1st.x, pos1st.y);
-	CCLOG("before 2nd position: %f, %f", pos2nd.x, pos2nd.y);
+	m_layer = layer;
 
+	m_labelScore = Label::createWithTTF(SCORE_LB, FONT_LABEL_PATH, FONT_SIZE);
+	m_labelScore->setPosition(Vec2(600, 400));
+	int halfWidthLbScore = m_labelScore->getBoundingBox().size.width / 2;
+	int halfHeightLbScore = m_labelScore->getBoundingBox().size.height / 2;
 
-	auto actionMove1st = MoveTo::create(0.4f, pos2nd);
-	auto seq1st = Sequence::create(actionMove1st, nullptr);
-	m_firstObj->runAction(seq1st);
-	pos1st = m_firstObj->getPosition();
+	m_scoreLb = Label::createWithTTF(std::to_string(m_totalScore), FONT_LABEL_PATH, FONT_SIZE);
+	m_scoreLb->setPosition(Vec2(m_labelScore->getPositionX() + OFFSET_LABEL + halfWidthLbScore, 400));
 
-	auto actionMove2nd = MoveTo::create(0.4f, pos1st);
-	auto seq2nd = Sequence::create(actionMove2nd, nullptr);
-	m_secondObj->runAction(seq2nd);
-	pos2nd = m_secondObj->getPosition();
+	m_labelTimer = Label::createWithTTF(TIMER_LB, FONT_LABEL_PATH, FONT_SIZE);
+	m_labelTimer->setPosition(Vec2(m_labelScore->getPositionX(), m_labelScore->getPositionY() - OFFSET_LABEL - halfHeightLbScore));
+	int halfWidthLbTimer = m_labelTimer->getBoundingBox().size.width / 2;
 
-	/// store (row, col) of two obj have changed.
-	m_index1stOld = m_firstObj->m_pos;
-	m_index2ndOld = m_secondObj->m_pos;
+	m_timerLb = Label::createWithTTF(std::to_string(int(m_timer)), FONT_LABEL_PATH, FONT_SIZE);
+	m_timerLb->setPosition(Vec2(m_labelTimer->getPositionX() + OFFSET_LABEL + halfWidthLbTimer, m_labelTimer->getPositionY() ));
 
-	/// swap value of candy.
-	int		tempValue = m_firstObj->m_value;
-	m_firstObj->m_value = m_secondObj->m_value;
-	m_secondObj->m_value = tempValue;
-
-	pos1st = m_firstObj->getPosition();
-	pos2nd = m_secondObj->getPosition();
-	CCLOG("after 1st position: %f, %f", m_firstObj->getPosition().x, m_firstObj->getPosition().y);
-	CCLOG("after 2nd position: %f, %f", m_secondObj->getPosition().x, m_secondObj->getPosition().y);
-
-	CCLOG("-----------End Swap----------");
+	m_layer->addChild(m_labelScore, Z_INDEX_LABEL);
+	m_layer->addChild(m_scoreLb, Z_INDEX_LABEL);
+	m_layer->addChild(m_labelTimer, Z_INDEX_LABEL);
+	m_layer->addChild(m_timerLb, Z_INDEX_LABEL);
 }
 
-void	GameMgr::UndoSwap()
+int GameMgr::CalculateScore()
 {
-	CCLOG("-----------Undo Swap----------");
+	int score = 0;
+	// tinh diem cho cac chain vertical
+	if (m_allChainsVertical.size() > 0)
+	{
+		for (auto it = m_allChainsVertical.begin(); it != m_allChainsVertical.end(); it++)
+		{
+			score += (*it).GetScores();
+		}
+	}
 
-	/// dua vao 2 vi tri vua thay doi (row, col)
-	/// tim ra 2 con tro, swap lai vi tri + value.
-	/// swap position
-	m_firstObj = m_board[m_index1stOld.m_row][m_index1stOld.m_col];
-	m_secondObj = m_board[m_index2ndOld.m_row][m_index2ndOld.m_col];
-
-	CCLOG("old 1st position: %f, %f", m_oldPos1.x, m_oldPos1.y);
-	CCLOG("old 2nd position: %f, %f", m_oldPos2.x, m_oldPos2.y);
-
-	CCLOG("----old 1st position: %f, %f", m_firstObj->getPositionX(), m_firstObj->getPositionY());
-	CCLOG("----old 2nd position: %f, %f", m_secondObj->getPositionX(), m_secondObj->getPositionY());
-
-	auto pos1st = m_firstObj->getPosition();
-	auto pos2nd = m_secondObj->getPosition();
-
-	auto actionMove1st = MoveTo::create(0.4f, pos1st);
-	auto seq1st = Sequence::create(actionMove1st, nullptr);
-	m_firstObj->runAction(seq1st);
-
-	auto actionMove2nd = MoveTo::create(0.4f, pos2nd);
-	auto seq2nd = Sequence::create(actionMove2nd, nullptr);
-	m_secondObj->runAction(seq2nd);
-
-	///// swap value of candy.
-	int		tempValue = m_firstObj->m_value;
-	m_firstObj->m_value = m_secondObj->m_value;
-	m_secondObj->m_value = tempValue;
-
-	CCLOG("after 1st position: %f, %f", m_firstObj->getPositionX(), m_firstObj->getPositionY());
-	CCLOG("after 2nd position: %f, %f", m_secondObj->getPositionX(), m_secondObj->getPositionY());
-
-	CCLOG("-----------End Undo Swap----------");
+	// tinh diem cho cac chain horizontal
+	if (m_allChainsHorizontal.size() > 0)
+	{
+		for (auto it = m_allChainsHorizontal.begin(); it != m_allChainsHorizontal.end(); it++)
+		{
+			score += (*it).GetScores();
+		}
+	}
+	return score;
 }
 
-void	GameMgr::ResetAfterSwap()
+void	GameMgr::UpdateScore()
 {
-	m_firstObj = nullptr;
-	m_secondObj = nullptr;
-	CCLOG("m_firstObj ------>>> NULL");
-	CCLOG("m_secondObj ------>>> NULL");
+	
+	if (m_currScore > 0)
+	{
+		CCLOG("Score up !");
+		m_totalScore += m_currScore;
+		m_currScore = 0;
+		m_scoreLb->setString(std::to_string(m_totalScore));
+	}
+	
 }
 
-void	GameMgr::ClearChainAfterSwap()
+void GameMgr::UpdateTimer(float dt)
 {
-	m_chainAfterSwap.clear();
-}
-
-void	GameMgr::UpScore()
-{
-	//CCLOG("Score up !");
-}
-
-int GameMgr::GetWidth()
-{
-	return m_width;
-}
-
-int GameMgr::GetHeight()
-{
-	return m_height;
-}
-
-int		GameMgr::GetOffsetX()
-{
-	return m_offsetX;
-}
-
-int		GameMgr::GetOffsetY()
-{
-	return m_offsetY;
-}
-
-void	GameMgr::SetOffsetX(int offset)
-{
-	m_offsetX = offset;
-}
-
-void	GameMgr::SetOffsetY(int offset)
-{
-	m_offsetY = offset;
+	m_timer -= dt;
+	m_timerLb->setString(std::to_string(int(m_timer)));
 }
 
 int		GameMgr::GetNumOfAllChains()
 {
-	return m_allChains.size();
+	return m_allChainsVertical.size() + m_allChainsHorizontal.size();
 }
 
 int		GameMgr::GetNumOfChainAfterSwap()
 {
-	return m_chainAfterSwap.size();
+	return m_chainHorizontalAfterSwap.size() + m_chainVerticalAfterSwap.size();
+}
+
+
+void			GameMgr::SwapTiles()
+{
+	m_isSwaping = true; // disable touch from player
+	CCLOG("--- giap: Swaping -----");
+	// save coord
+	auto coordA = m_board[m_firstPos.m_x][m_firstPos.m_y]->m_coord;
+	auto coordB = m_board[m_secondPos.m_x][m_secondPos.m_y]->m_coord;
+
+	// swap 2 pointer
+	Candy*		temp = m_board[m_firstPos.m_x][m_firstPos.m_y];
+	m_board[m_firstPos.m_x][m_firstPos.m_y] = m_board[m_secondPos.m_x][m_secondPos.m_y];
+	m_board[m_secondPos.m_x][m_secondPos.m_y] = temp;
+
+	// cập nhật lại tọa độ (m_coord) của mỗi pointer,
+	// vì lúc này candyA sẽ mang nội dung của candyB,
+	// nên phải set lại tọa độ cũ của mỗi sprite.
+	m_board[m_firstPos.m_x][m_firstPos.m_y]->m_coord = coordA;
+	m_board[m_secondPos.m_x][m_secondPos.m_y]->m_coord = coordB;
+	// set lại position
+	m_board[m_firstPos.m_x][m_firstPos.m_y]->setPosition(GetPositionInWorld(coordA));
+	m_board[m_secondPos.m_x][m_secondPos.m_y]->setPosition(GetPositionInWorld(coordB));
+	// lưu lại 2 vị trí vừa swap để ktra sau.
+	m_firstPosAfterSwap = coordA;
+	m_secondPosAfterSwap = coordB;
+}
+
+void GameMgr::SwapTilesMan()
+{
+	m_isSwaping = true; // disable touch from player
+	CCLOG("--- giap: Swaping -----");
+	// save coord
+	auto coordA = m_board[m_firstPos.m_x][m_firstPos.m_y]->m_coord;
+	auto coordB = m_board[m_secondPos.m_x][m_secondPos.m_y]->m_coord;
+
+	// swap 2 pointer
+	Candy*		temp = m_board[m_firstPos.m_x][m_firstPos.m_y];
+	m_board[m_firstPos.m_x][m_firstPos.m_y] = m_board[m_secondPos.m_x][m_secondPos.m_y];
+	m_board[m_secondPos.m_x][m_secondPos.m_y] = temp;
+
+	// cập nhật lại tọa độ (m_coord) của mỗi pointer,
+	// vì lúc này candyA sẽ mang nội dung của candyB,
+	// nên phải set lại tọa độ cũ của mỗi sprite.
+	m_board[m_firstPos.m_x][m_firstPos.m_y]->m_coord = coordA;
+	m_board[m_secondPos.m_x][m_secondPos.m_y]->m_coord = coordB;
+	// set lại position
+	m_board[m_firstPos.m_x][m_firstPos.m_y]->setPosition(GetPositionInWorldMan(coordA));
+	m_board[m_secondPos.m_x][m_secondPos.m_y]->setPosition(GetPositionInWorldMan(coordB));
+	// lưu lại 2 vị trí vừa swap để ktra sau.
+	m_firstPosAfterSwap = coordA;
+	m_secondPosAfterSwap = coordB;
+}
+
+void			GameMgr::UndoSwapTiles()
+{
+	m_isSwaping = true; // disable touch from player
+	CCLOG("--- giap: Undo Swaping -----");
+
 }

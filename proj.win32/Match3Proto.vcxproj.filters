@@ -18,12 +18,15 @@
     <ClCompile Include="..\Classes\AppDelegate.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\HelloWorldScene.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\Candy.cpp" />
     <ClCompile Include="..\Classes\Chain.cpp" />
     <ClCompile Include="..\Classes\GameMgr.cpp" />
+    <ClCompile Include="..\Classes\MainMenuScene.cpp" />
+    <ClCompile Include="..\Classes\MenuSettingsScene.cpp" />
+    <ClCompile Include="..\Classes\MainGameScene.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\GameOverScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -32,18 +35,25 @@
     <ClInclude Include="..\Classes\AppDelegate.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\Classes\HelloWorldScene.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\defined.h" />
     <ClInclude Include="..\Candy.h" />
-    <ClInclude Include="..\GameManager.h" />
     <ClInclude Include="..\Classes\Chain.h" />
     <ClInclude Include="..\Classes\GameMgr.h" />
+    <ClInclude Include="..\Classes\MainMenuScene.h" />
+    <ClInclude Include="..\Classes\MenuSettingsScene.h" />
+    <ClInclude Include="..\Classes\MainGameScene.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\GameOverScene.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="game.rc">
       <Filter>resource</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\board1.txt" />
+    <Text Include="..\board2.txt" />
+    <Text Include="..\board3.txt" />
   </ItemGroup>
 </Project>

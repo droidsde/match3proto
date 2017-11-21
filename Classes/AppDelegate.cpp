@@ -1,5 +1,22 @@
 #include "AppDelegate.h"
-#include "HelloWorldScene.h"
+#include "MainGameScene.h"
+#include "MainMenuScene.h"
+
+
+// #define USE_AUDIO_ENGINE 1
+// #define USE_SIMPLE_AUDIO_ENGINE 1
+
+#if USE_AUDIO_ENGINE && USE_SIMPLE_AUDIO_ENGINE
+#error "Don't use AudioEngine and SimpleAudioEngine at the same time. Please just select one in your game!"
+#endif
+
+#if USE_AUDIO_ENGINE
+#include "audio/include/AudioEngine.h"
+using namespace cocos2d::experimental;
+#elif USE_SIMPLE_AUDIO_ENGINE
+#include "audio/include/SimpleAudioEngine.h"
+using namespace CocosDenshion;
+#endif
 
 USING_NS_CC;
 
@@ -14,6 +31,11 @@ AppDelegate::AppDelegate()
 
 AppDelegate::~AppDelegate() 
 {
+#if USE_AUDIO_ENGINE
+    AudioEngine::end();
+#elif USE_SIMPLE_AUDIO_ENGINE
+    SimpleAudioEngine::end();
+#endif
 }
 
 // if you want a different context, modify the value of glContextAttrs
@@ -50,16 +72,15 @@ bool AppDelegate::applicationDidFinishLaunching() {
     director->setDisplayStats(true);
 
     // set FPS. the default value is 1.0/60 if you don't call this
-    director->setAnimationInterval(1.0f / 40);
+    director->setAnimationInterval(1.0f / 25);
 
     // Set the design resolution
     glview->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, ResolutionPolicy::NO_BORDER);
 	auto frameSize = glview->getFrameSize();
-
 	// if the frame's height is larger than the height of medium size.
 	if (frameSize.width > mediumResolutionSize.width)
 	{
-		director->setContentScaleFactor(MIN(largeResolutionSize.width / designResolutionSize.width, largeResolutionSize.height / designResolutionSize.height));
+		director->setContentScaleFactor(MIN(largeResolutionSize.width / designResolutionSize.width, largeResolutionSize.height/designResolutionSize.height));
 	}
 	// if the frame's height is larger than the height of small size.
 	else if (frameSize.width > smallResolutionSize.width)
@@ -76,11 +97,10 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
     register_all_packages();
 
-    // create a scene. it's an autorelease object
-    auto scene = HelloWorld::createScene();
-
+    // create a first scene. it's an autorelease object
+	auto mainMenuScene = MainMenu::createScene();
     // run
-    director->runWithScene(scene);
+    director->runWithScene(mainMenuScene);
 
     return true;
 }
@@ -89,14 +109,22 @@ bool AppDelegate::applicationDidFinishLaunching() {
 void AppDelegate::applicationDidEnterBackground() {
     Director::getInstance()->stopAnimation();
 
-    // if you use SimpleAudioEngine, it must be paused
-    // SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
+#if USE_AUDIO_ENGINE
+    AudioEngine::pauseAll();
+#elif USE_SIMPLE_AUDIO_ENGINE
+    SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
+    SimpleAudioEngine::getInstance()->pauseAllEffects();
+#endif
 }
 
 // this function will be called when the app is active again
 void AppDelegate::applicationWillEnterForeground() {
     Director::getInstance()->startAnimation();
 
-    // if you use SimpleAudioEngine, it must resume here
-    // SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
+#if USE_AUDIO_ENGINE
+    AudioEngine::resumeAll();
+#elif USE_SIMPLE_AUDIO_ENGINE
+    SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
+    SimpleAudioEngine::getInstance()->resumeAllEffects();
+#endif
 }

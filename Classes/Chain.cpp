@@ -2,131 +2,141 @@
 
 #include "Chain.h"
 
-Chain::Chain()
-{
-	m_first = Position(0, 0);
-	m_last = Position(0, 0);
-	m_length = 0;
-	m_isVertical = true;
-	m_typeOfChain = 0;
-}
 
-Chain::Chain(Position first, Position last, int length, bool direction /*= true*/)
+
+Chain::Chain(int type, int firstX, int firstY, int lastX, int lastY, bool isVertical, int score)
 {
-	m_first = first;
-	m_last = last;
-	m_length = length;
-	m_isVertical = direction;
+	m_typeOfChain = type;
+
+	m_firstX = firstX;
+	m_firstY = firstY;
+
+	m_lastX = lastX;
+	m_lastY = lastY;
+
+	m_length = 1;
+	m_score = score;
+	m_isVertical = isVertical;
 }
 
 Chain::~Chain()
 {
 }
 
-void Chain::AddOneNodeToChain(Position pos)
+void Chain::AddOneNodeToChain(int x, int y)
 {
-	m_length += 1;
-	/// thêm vào cuối nếu chỉ số row(col) lớn hơn phần tử cuối của chuỗi,
-	/// và cập nhật lại vị trí phần tử cuối.
+	FixChain();
 	if (m_isVertical)
 	{
-		if (pos.m_col > m_last.m_col)
+		if (y < m_firstY)
 		{
-			m_last = pos;
+			// them ptu vao dau chain
+			m_firstY = y;
 		}
-		else
+		else if (y > m_lastY)
 		{
-			m_first = pos;
+			// them ptu vao cuoi chain
+			m_lastY = y;
 		}
 	}
-	/// thêm vào đầu chuỗi nếu chỉ số row(col) nhỏ hơn phần tử đầu của chuỗi,
-	/// và cập nhật lại vị trí phần tử đầu.
 	else
 	{
-		if (pos.m_row > m_last.m_row)
+		// them ptu sang ben phai
+		if (x < m_firstX)
 		{
-			m_last = pos;
+			// them ptu vao phia ben trai
+			m_firstX = x;
 		}
-		else
+		else if (x > m_lastX)
 		{
-			m_first = pos;
+			// them ptu vao phai ben phai
+			m_lastX = x;
 		}
 	}
+	m_length += 1;
 }
 
 void Chain::FixChain()
 {
+	// ham dam bao toa do cua chain luon tu first -> last
 	if (m_isVertical)
 	{
-		if (m_first.m_row > m_last.m_row)
+		// ptu dau tien phai o ben tren
+		if (m_firstY > m_lastY)
 		{
-			Position temp = m_first;
-			m_first = m_last;
-			m_last = temp;
+			int temp = m_firstY;
+			m_firstY = m_lastY;
+			m_lastY = temp;
 		}
 	}
 	else
 	{
-		if (m_first.m_col > m_last.m_col)
+		// ptu dau tien phai o ben trai
+		if (m_firstX > m_lastX)
 		{
-			Position temp = m_first;
-			m_first = m_last;
-			m_last = temp;
+			int temp = m_firstX;
+			m_firstX = m_lastX;
+			m_lastX = temp;
 		}
 	}
 }
 
-bool Chain::CheckIfSameTypeChain(int typeOfCandy)
+bool Chain::CheckIfInChain(int type, int x, int y)
 {
-	if (m_typeOfChain == typeOfCandy)
+	if (m_typeOfChain != type)
 	{
-		return true;
+		return false;
 	}
-	return false;
-}
 
-bool Chain::CheckIfInChain(Position p)
-{
-	FixChain();
 	if (m_isVertical)
 	{
-		/// so sánh row
-		if ((m_first.m_row <= p.m_row) && (p.m_row <= m_last.m_row) && (m_first.m_col == p.m_col))
+		if (x == m_firstX)
 		{
-			return true;
+			if ((m_firstY <= y) && (y <= m_lastY))
+			{
+				return true;
+			}
+			return false;
 		}
 		return false;
 	}
 	else
 	{
-		/// so sánh column
-		if ((m_first.m_col <= p.m_col) && (p.m_col <= m_last.m_col) && (m_first.m_row == p.m_row))
+		if (y == m_firstY)
 		{
-			return true;
+			if ((m_firstX <= x) && (x <= m_lastX))
+			{
+				return true;
+			}
+			return false;
 		}
 		return false;
 	}
+}
+
+int Chain::GetLength() const
+{
+	return m_length;
 }
 
 void Chain::PrintChain()
 {
-	FixChain();
+	CCLOG("--- giap: first(%d, %d) - last(%d, %d) type = %d", m_firstX, m_firstY, m_lastX, m_lastY, m_typeOfChain);
+}
+
+void Chain::PrintClearChain()
+{
 	if (m_isVertical)
 	{
-		printf("column = %d\n", m_first.m_col);
-		for (int row = m_first.m_row; row <= m_last.m_row; row++)
-		{
-			printf(" %2d ", row);
-		}
-		printf("\n");
+		CCLOG("Clear chain Vertical first(%d,%d) last(%d,%d) type = %d ", m_firstX, m_firstY, m_lastX, m_lastY, m_typeOfChain);
 	}
 	else
 	{
-		printf("row = %d\n", m_first.m_row);
-		for (int col = m_first.m_col; col <= m_last.m_col; col++)
-		{
-			printf(" %2d ", col);
-		}
-		printf("\n");
+		CCLOG("Clear chain Horizontal first(%d,%d) last(%d,%d) type = %d ", m_firstX, m_firstY, m_lastX, m_lastY, m_typeOfChain);
 	}
+}
+
+int Chain::GetScores()
+{
+	return m_length * m_score;
 }
