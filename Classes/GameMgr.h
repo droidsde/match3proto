@@ -3,6 +3,7 @@
 #include "Candy.h"
 #include <vector>
 #include <string>
+#include "Utils.h"
 
 
 class Chain;
@@ -23,10 +24,6 @@ public:
 	void	Update(float dt);
 
 	void	CheckMatchThreeInRow();
-
-	Vec2	GetPositionInWorld(Coord &c);
-	// for manual setup
-	Vec2	GetPositionInWorldMan(Coord &c);
 
 	void	PrintBoard();
 	void	CheckMatchVertical(Candy* currCandy, bool isAfterSwap = false);

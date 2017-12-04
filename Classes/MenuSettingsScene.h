@@ -10,6 +10,10 @@ private:
 	cocos2d::Label	*m_labelBack;
 	cocos2d::Label	*m_labelSave;
 
+	//test animation
+	cocos2d::Sprite	*m_sprite;
+	Vector<SpriteFrame*>	m_aniFrame;
+	void	runAnimation(cocos2d::Sprite* sprite);
 public:
 	static cocos2d::Scene* createScene();
 

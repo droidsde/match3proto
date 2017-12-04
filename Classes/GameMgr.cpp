@@ -64,7 +64,7 @@ void GameMgr::SetUpBoard(cocos2d::Layer *layer)
 			}
 			m_board[x][y]->setScale(SCALE_OF_TILE);
 			m_board[x][y]->m_coord = Coord(x, y);
-			m_board[x][y]->setPosition(GetPositionInWorld(Coord(x, y)));
+			m_board[x][y]->setPosition(Utils::GetPositionInWorld(Coord(x, y)));
 			layer->addChild(m_board[x][y], Z_INDEX_CANDY);
 		}
 	}
@@ -113,7 +113,7 @@ void GameMgr::SetUpBoardManual(cocos2d::Layer * layer, std::string fileName)
 			}
 			m_board[x][y]->setScale(SCALE_OF_TILE);
 			m_board[x][y]->m_coord = Coord(x, y);
-			m_board[x][y]->setPosition(GetPositionInWorldMan(Coord(x, y)));
+			m_board[x][y]->setPosition(Utils::GetPositionInWorldMan(Coord(x, y)));
 			layer->addChild(m_board[x][y], Z_INDEX_CANDY);
 		}
 	}
@@ -279,18 +279,6 @@ void	GameMgr::CheckMatchThreeInRow()
 			}
 		}
 	}
-}
-
-Vec2	GameMgr::GetPositionInWorld(Coord &c)
-{
-	/// p là vị trí của tile (viên kẹo) trong board.
-	/// return vị trí của tile (viên kẹo) trong màn hình.
-	return Vec2(BOT_LEFT_X + c.m_x * OFFSET_X, BOT_LEFT_Y + c.m_y * OFFSET_Y);
-}
-
-Vec2 GameMgr::GetPositionInWorldMan(Coord & c)
-{
-	return Vec2(TOP_LEFT_X + c.m_x * OFFSET_X, TOP_LEFT_Y - c.m_y * OFFSET_Y);
 }
 
 void GameMgr::PrintBoard()
@@ -585,7 +573,7 @@ void	GameMgr::ReFillBoard()
 					}
 					m_board[x][y]->setScale(SCALE_OF_TILE);
 					m_board[x][y]->m_coord = Coord(x, y);
-					m_board[x][y]->setPosition(GetPositionInWorldMan(Coord(x, y)));
+					m_board[x][y]->setPosition(Utils::GetPositionInWorldMan(Coord(x, y)));
 					m_layer->addChild(m_board[x][y], Z_INDEX_CANDY);
 					CCLOG("Refill (%d,%d) type = %d ", x, y, m_board[x][y]->m_type);
 				}
@@ -797,8 +785,8 @@ void			GameMgr::SwapTiles()
 	m_board[m_firstPos.m_x][m_firstPos.m_y]->m_coord = coordA;
 	m_board[m_secondPos.m_x][m_secondPos.m_y]->m_coord = coordB;
 	// set lại position
-	m_board[m_firstPos.m_x][m_firstPos.m_y]->setPosition(GetPositionInWorld(coordA));
-	m_board[m_secondPos.m_x][m_secondPos.m_y]->setPosition(GetPositionInWorld(coordB));
+	m_board[m_firstPos.m_x][m_firstPos.m_y]->setPosition(Utils::GetPositionInWorld(coordA));
+	m_board[m_secondPos.m_x][m_secondPos.m_y]->setPosition(Utils::GetPositionInWorld(coordB));
 	// lưu lại 2 vị trí vừa swap để ktra sau.
 	m_firstPosAfterSwap = coordA;
 	m_secondPosAfterSwap = coordB;
@@ -823,8 +811,8 @@ void GameMgr::SwapTilesMan()
 	m_board[m_firstPos.m_x][m_firstPos.m_y]->m_coord = coordA;
 	m_board[m_secondPos.m_x][m_secondPos.m_y]->m_coord = coordB;
 	// set lại position
-	m_board[m_firstPos.m_x][m_firstPos.m_y]->setPosition(GetPositionInWorldMan(coordA));
-	m_board[m_secondPos.m_x][m_secondPos.m_y]->setPosition(GetPositionInWorldMan(coordB));
+	m_board[m_firstPos.m_x][m_firstPos.m_y]->setPosition(Utils::GetPositionInWorldMan(coordA));
+	m_board[m_secondPos.m_x][m_secondPos.m_y]->setPosition(Utils::GetPositionInWorldMan(coordB));
 	// lưu lại 2 vị trí vừa swap để ktra sau.
 	m_firstPosAfterSwap = coordA;
 	m_secondPosAfterSwap = coordB;
